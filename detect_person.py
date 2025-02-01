@@ -10,26 +10,33 @@ from onvif import ONVIFCamera
 from db_operations import insert_frame
 from db_pool import close_connection_pool  # 종료 시 커넥션 풀 닫기
 
-SERVER_URL = "http://localhost:5000/upload"
+SERVER_URL = "http://localhost:7800"
+BEARER_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcmdfaWQiOiIyNSIsIm9yZ19ncm91cF9pZCI6ImRlNTNhNzIyLTkzNDMtNDllMC1hMmVlLTQ0ZWFjNjlhZmU1NiIsIm5hbWUiOiJ1bml2cyIsImVtYWlsIjoia3R5QHVuaXZzLmFpIiwiaWF0IjoxNzM2Mzk1NDc5LCJleHAiOjM0NzI3OTA5NTh9.XzxfCy3V0wc8MpYO6m6LvT98UESKOrMXayITTJdncpA"
 
 # 비동기 HTTP 요청 함수
 async def send_frame_async(image_data):
-    async with aiohttp.ClientSession() as session:
+    headers = {"Authorization": f"Bearer {BEARER_TOKEN}"}
+    
+    async with aiohttp.ClientSession(headers=headers) as session:
         async with session.post(SERVER_URL, data={'image': image_data}) as response:
             result = await response.text()
             return f"📡 서버 응답: {response.status}, {result}"
 
 # 비동기 HTTP 요청 함수
 async def send_human_async(image_data, rect):
-    async with aiohttp.ClientSession() as session:
-        async with session.post(SERVER_URL, data={'image': image_data}) as response:
+    headers = {"Authorization": f"Bearer {BEARER_TOKEN}"}
+    
+    async with aiohttp.ClientSession(headers=headers) as session:
+        async with session.post(SERVER_URL+ "/event/generate", data={'image': image_data}) as response:
             result = await response.text()
             return f"📡 서버 응답: {response.status}, {result}"
         
 # 비동기 HTTP 요청 함수
 async def send_vehicle_async(image_data, rect):
-    async with aiohttp.ClientSession() as session:
-        async with session.post(SERVER_URL, data={'image': image_data}) as response:
+    headers = {"Authorization": f"Bearer {BEARER_TOKEN}"}
+    
+    async with aiohttp.ClientSession(headers=headers) as session:
+        async with session.post(SERVER_URL + "/bestframe/vehicle", data={'image': image_data}) as response:
             result = await response.text()
             return f"📡 서버 응답: {response.status}, {result}"        
 
@@ -58,7 +65,7 @@ def is_overlapping_with_center_offset(rect1, rect2):
     distance = math.sqrt((x2_c - x1_c) ** 2 + (y2_c - y1_c) ** 2)
     return distance < vehicle_w 
 
-def main():
+async def main():
     model = YOLO('yolo11n.pt')  # COCO 사전 학습
     model.overrides['conf'] = 0.25  # confidence threshold 설정
 
@@ -86,12 +93,13 @@ def main():
             results = model.predict(frame)
             clone_frame = frame.copy()
             
+            tasks = []            
+            vehicles = []
+            humans = []
             for r in results:
                 object_idx = 1
                             
-                tasks = []
-                vehicles = []
-                humans = []
+            
                 for box in r.boxes:
                     cls_id = int(box.cls[0])
                     conf = float(box.conf[0])
@@ -131,11 +139,15 @@ def main():
 
                     object_idx += 1   
                 
-                for person in persons:
-                    for car in cars:
-                        print("Person overlap + " + str(is_overlapping_with_center_offset(person['rect'], car['rect'])))
+                # for person in persons:
+                #     for car in cars:
+                #         print("Person overlap + " + str(is_overlapping_with_center_offset(person['rect'], car['rect'])))
+            results = await asyncio.gather(*tasks)
 
-            
+            # 결과 출력
+            for res in results:
+                print(res)
+        
 
 
         if raw_frame % frame_skip == 0:
