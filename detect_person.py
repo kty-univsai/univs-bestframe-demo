@@ -66,7 +66,7 @@ def is_overlapping_with_center_offset(rect1, rect2):
     return distance < vehicle_w 
 
 async def main():
-    model = YOLO('yolo11n.pt')  # COCO 사전 학습
+    model = YOLO('yolo11n.pt', verbose=False)  # COCO 사전 학습
     model.overrides['conf'] = 0.25  # confidence threshold 설정
 
     if torch.cuda.is_available():
@@ -158,7 +158,7 @@ async def main():
 
             current_frame += 1
 
-        cv2.imshow("YOLOv11n - Person & Car", frame)        
+        # cv2.imshow("YOLOv11n - Person & Car", frame)        
         raw_frame += 1
        
         if cv2.waitKey(1) & 0xFF == 27:  # ESC 종료
