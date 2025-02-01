@@ -211,7 +211,7 @@ async def main():
         # cv2.imshow("YOLOv11n - Person & Car", frame)        
         raw_frame += 1
        
-        if cv2.waitKey(1) & 0xFF == 27:  # ESC 종료
+        if cv2.waitKey(10) & 0xFF == 27:  # ESC 종료
             break
 
     cap.release()
