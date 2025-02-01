@@ -4,6 +4,7 @@ import time
 import math
 import aiohttp
 import asyncio
+import json
 import numpy as np
 from ultralytics import YOLO
 from onvif import ONVIFCamera
@@ -13,40 +14,56 @@ from db_pool import close_connection_pool  # 종료 시 커넥션 풀 닫기
 SERVER_URL = "http://localhost:7800"
 BEARER_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcmdfaWQiOiIyNSIsIm9yZ19ncm91cF9pZCI6ImRlNTNhNzIyLTkzNDMtNDllMC1hMmVlLTQ0ZWFjNjlhZmU1NiIsIm5hbWUiOiJ1bml2cyIsImVtYWlsIjoia3R5QHVuaXZzLmFpIiwiaWF0IjoxNzM2Mzk1NDc5LCJleHAiOjM0NzI3OTA5NTh9.XzxfCy3V0wc8MpYO6m6LvT98UESKOrMXayITTJdncpA"
 
-async def send_frame_async(image_data):
+async def send_frame_async(image_data, metadata):
     headers = {"Authorization": f"Bearer {BEARER_TOKEN}"}
-    
+    json_string = json.dumps(metadata)
+
     async with aiohttp.ClientSession(headers=headers) as session:
-        async with session.post(SERVER_URL, data={'image': image_data}) as response:
-            result = await response.text()
-            return {
-                "result": result,
-                "type": "frame"
-            }      
+        async with session.post(SERVER_URL, data={'image': image_data, 'metadata': json_string}) as response:
+            if response.status == 200:
+                json_data = await response.json()
+                return {
+                    "json": json_data,
+                    "type": "frame"
+                }                        
+            else:
+                return None
 
 async def send_human_async(image_data, rect):
     headers = {"Authorization": f"Bearer {BEARER_TOKEN}"}
     
     async with aiohttp.ClientSession(headers=headers) as session:
         async with session.post(SERVER_URL+ "/event/generate", data={'image': image_data}) as response:
-            result = await response.text()
-            return {
-                "result": result,
-                "type": "human",
-                "rect": rect
-            }      
+            if response.status == 200:
+                json_data = await response.json()
+                if json_data.get("code") == "success":
+                    return {
+                        "json": json_data,
+                        "type": "human",
+                        "rect": rect
+                    }
+                else:
+                    return None    
+            else:
+                return None
         
-async def send_vehicle_async(image_data, rect):
+async def send_car_async(image_data, rect):
     headers = {"Authorization": f"Bearer {BEARER_TOKEN}"}
     
     async with aiohttp.ClientSession(headers=headers) as session:
-        async with session.post(SERVER_URL + "/bestframe/vehicle", data={'image': image_data}) as response:
-            result = await response.text()
-            return {
-                "result": result,
-                "type": "vehicle",
-                "rect": rect
-            }        
+        async with session.post(SERVER_URL + "/bestframe/car", data={'image': image_data}) as response:
+            if response.status == 200:
+                json_data = await response.json()
+                if json_data.get("code") == "success":
+                    return {
+                        "json": json_data,
+                        "type": "car",
+                        "rect": rect
+                    }
+                else:
+                    return None        
+            else:
+                return None
 
 
 frame_skip = 30
@@ -67,11 +84,11 @@ def is_overlapping_with_center_offset(rect1, rect2):
     x2_c = (rect2[0] + rect2[2]) / 2
     y2_c = (rect2[1] + rect2[3]) / 2
 
-    vehicle_w = rect2[2] - rect2[0] / 2
+    car_w = rect2[2] - rect2[0] / 2
 
     # 두 사각형 중심 간 거리 계산 (유클리드 거리)
     distance = math.sqrt((x2_c - x1_c) ** 2 + (y2_c - y1_c) ** 2)
-    return distance < vehicle_w 
+    return distance < car_w 
 
 async def main():
     model = YOLO('yolo11n.pt', verbose=False)  # COCO 사전 학습
@@ -102,7 +119,7 @@ async def main():
             clone_frame = frame.copy()
             
             tasks = []            
-            vehicles = []
+            cars = []
             humans = []
             for r in results:
                 object_idx = 1
@@ -118,24 +135,12 @@ async def main():
                     if label in ["person", "car"]:
                         x1, y1, x2, y2 = xyxy
 
-                        # if label == "person":
-                        #     persons.append({
-                        #         "object_type": label,
-                        #         "rect": (x1, y1, x2, y2)
-                        #     })
-
-                        # if label == "car":
-                        #     cars.append({
-                        #         "object_type": label,
-                        #         "rect": (x1, y1, x2, y2)
-                        #     })
-
 
                         cropped_frame = clone_frame[y1:y2, x1:x2]
                         _, img_encoded = cv2.imencode('.jpg', cropped_frame)
                         
                         if label == "car":
-                            tasks.append(send_vehicle_async(img_encoded.tobytes(), (x1, y1, x2, y2)))
+                            tasks.append(send_car_async(img_encoded.tobytes(), (x1, y1, x2, y2)))
                         if label == "person":
                             tasks.append(send_human_async(img_encoded.tobytes(), (x1, y1, x2, y2)))
 
@@ -149,17 +154,46 @@ async def main():
                 
                 
             results = await asyncio.gather(*tasks)
+            valid_results = list(filter(None, results))
 
             # 결과 출력
-            for res in results:
-                if res['type'] == 'vehicle':
-                    vehicles.append(res)
+            for res in valid_results:
+                if res['type'] == 'car':
+                    cars.append(res)
                 elif res['type'] == 'human':
                     humans.append(res) 
             
+            overlap_trigger = False
+            human_metadata = []
+            car_metadata = []
             for human in humans:
-                for vehicle in vehicles:
-                    print("Person overlap: " + str(is_overlapping_with_center_offset(human['rect'], vehicle['rect'])))
+                overlap_car = [] 
+                h1 = {
+                    "id": human['json'].get("data").get("id"),
+                    "face_image_path": human['json'].get("data").get("faceSamples").get("filePath"),
+                    "body_image_path": human['json'].get("data").get("bodySamples").get("filePath")
+                }
+                for car in cars:
+                    if is_overlapping_with_center_offset(human['rect'], car['rect']):
+                        overlap_trigger = True
+                        overlap_car.append(car['json'].get("data").get("id")) 
+                h1["overlap"] = overlap_car
+                human_metadata.append(h1)
+            
+            for car in cars:
+                v1 = {
+                    "id": car['json'].get("data").get("id"),
+                    "image_path": car['json'].get("data").get("samples").get("filePath"),
+                }
+                car_metadata.append(v1)
+            
+            metadata= {
+                "human": human_metadata,
+                "car": car_metadata,
+                "events": {
+                    "vehicle_overlap": overlap_trigger
+                }
+            }
 
 
 
@@ -167,7 +201,7 @@ async def main():
             # filename = "./frames/frame_" + str(current_frame) + ".jpg"
             _, img_encoded = cv2.imencode('.jpg', frame)
             # 비동기 HTTP 요청 실행 (서버 응답을 기다리지 않음)
-            send_frame_async(img_encoded.tobytes())
+            send_frame_async(img_encoded.tobytes(), metadata)
 
             current_frame += 1
 
