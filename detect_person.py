@@ -17,7 +17,6 @@ BEARER_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcmdfaWQiOiIyNSIsIm9yZ19
 async def send_frame_async(image_data, metadata):
     headers = {"Authorization": f"Bearer {BEARER_TOKEN}"}
     json_string = json.dumps(metadata)
-    print(json_string)
     async with aiohttp.ClientSession(headers=headers) as session:
         async with session.post(SERVER_URL + "/bestframe/frame", data={'image': image_data, 'metadata': json_string}) as response:
             if response.status == 200:
@@ -89,7 +88,7 @@ def is_overlapping_with_center_offset(rect1, rect2):
     # 두 사각형 중심 간 거리 계산 (유클리드 거리)
     distance = math.sqrt((x2_c - x1_c) ** 2 + (y2_c - y1_c) ** 2)
     
-    print(distance + "," + car_w)
+    print(str(distance) + "," + str(car_w))
     return distance < car_w 
 
 async def main():
