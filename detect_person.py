@@ -166,24 +166,25 @@ async def main():
             overlap_trigger = False
             human_metadata = []
             car_metadata = []
+
             for human in humans:
                 overlap_car = [] 
                 h1 = {
-                    "id": human['json'].get("data").get("id"),
-                    "face_image_path": human['json'].get("data").get("faceSamples").get("filePath"),
-                    "body_image_path": human['json'].get("data").get("bodySamples").get("filePath")
+                    "id": human['json'].get("data", {}).get("id", -1),
+                    "face_image_path": human['json'].get("data", {}).get("faceSamples", {}).get("filePath", ""),
+                    "body_image_path": human['json'].get("data", {}).get("bodySamples", {}).get("filePath", "")
                 }
                 for car in cars:
                     if is_overlapping_with_center_offset(human['rect'], car['rect']):
                         overlap_trigger = True
-                        overlap_car.append(car['json'].get("data").get("id")) 
+                        overlap_car.append(car['json'].get("data", {}).get("id")) 
                 h1["overlap"] = overlap_car
                 human_metadata.append(h1)
             
             for car in cars:
                 v1 = {
-                    "id": car['json'].get("data").get("id"),
-                    "image_path": car['json'].get("data").get("samples").get("filePath"),
+                    "id": car['json'].get("data", {}).get("id", -1),
+                    "image_path": car['json'].get("data", {}).get("samples", {}).get("filePath", ""),
                 }
                 car_metadata.append(v1)
             
