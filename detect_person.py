@@ -203,7 +203,7 @@ async def main():
 
 
         if raw_frame % frame_skip == 0:
-            # filename = "./frames/frame_" + str(current_frame) + ".jpg"
+            print("sex")
             _, img_encoded = cv2.imencode('.jpg', frame)
             # 비동기 HTTP 요청 실행 (서버 응답을 기다리지 않음)
             send_frame_async(img_encoded.tobytes(), metadata)
