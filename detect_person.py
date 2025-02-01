@@ -13,32 +13,40 @@ from db_pool import close_connection_pool  # 종료 시 커넥션 풀 닫기
 SERVER_URL = "http://localhost:7800"
 BEARER_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcmdfaWQiOiIyNSIsIm9yZ19ncm91cF9pZCI6ImRlNTNhNzIyLTkzNDMtNDllMC1hMmVlLTQ0ZWFjNjlhZmU1NiIsIm5hbWUiOiJ1bml2cyIsImVtYWlsIjoia3R5QHVuaXZzLmFpIiwiaWF0IjoxNzM2Mzk1NDc5LCJleHAiOjM0NzI3OTA5NTh9.XzxfCy3V0wc8MpYO6m6LvT98UESKOrMXayITTJdncpA"
 
-# 비동기 HTTP 요청 함수
 async def send_frame_async(image_data):
     headers = {"Authorization": f"Bearer {BEARER_TOKEN}"}
     
     async with aiohttp.ClientSession(headers=headers) as session:
         async with session.post(SERVER_URL, data={'image': image_data}) as response:
             result = await response.text()
-            return f"📡 서버 응답: {response.status}, {result}"
+            return {
+                "result": result,
+                "type": "frame"
+            }      
 
-# 비동기 HTTP 요청 함수
 async def send_human_async(image_data, rect):
     headers = {"Authorization": f"Bearer {BEARER_TOKEN}"}
     
     async with aiohttp.ClientSession(headers=headers) as session:
         async with session.post(SERVER_URL+ "/event/generate", data={'image': image_data}) as response:
             result = await response.text()
-            return f"📡 서버 응답: {response.status}, {result}"
+            return {
+                "result": result,
+                "type": "human",
+                "rect": rect
+            }      
         
-# 비동기 HTTP 요청 함수
 async def send_vehicle_async(image_data, rect):
     headers = {"Authorization": f"Bearer {BEARER_TOKEN}"}
     
     async with aiohttp.ClientSession(headers=headers) as session:
         async with session.post(SERVER_URL + "/bestframe/vehicle", data={'image': image_data}) as response:
             result = await response.text()
-            return f"📡 서버 응답: {response.status}, {result}"        
+            return {
+                "result": result,
+                "type": "vehicle",
+                "rect": rect
+            }        
 
 
 frame_skip = 30
@@ -139,15 +147,20 @@ async def main():
 
                     object_idx += 1   
                 
-                # for person in persons:
-                #     for car in cars:
-                #         print("Person overlap + " + str(is_overlapping_with_center_offset(person['rect'], car['rect'])))
+                
             results = await asyncio.gather(*tasks)
 
             # 결과 출력
             for res in results:
-                print(res)
-        
+                if res['type'] == 'vehicle':
+                    vehicles.append(res)
+                elif res['type'] == 'human':
+                    humans.append(res) 
+            
+            for human in humans:
+                for vehicle in vehicles:
+                    print("Person overlap: " + str(is_overlapping_with_center_offset(human['rect'], vehicle['rect'])))
+
 
 
         if raw_frame % frame_skip == 0:
