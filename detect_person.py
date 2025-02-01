@@ -169,7 +169,7 @@ async def main():
 
             for human in humans:
                 overlap_car = [] 
-                print(human['json'])
+               
                 h1 = {
                     "id": human['json'].get("data", {}).get("id", -1)
                 }
