@@ -88,6 +88,8 @@ def is_overlapping_with_center_offset(rect1, rect2):
 
     # 두 사각형 중심 간 거리 계산 (유클리드 거리)
     distance = math.sqrt((x2_c - x1_c) ** 2 + (y2_c - y1_c) ** 2)
+    
+    print(distance + "," + car_w)
     return distance < car_w 
 
 async def main():
