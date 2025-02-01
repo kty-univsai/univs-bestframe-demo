@@ -169,6 +169,7 @@ async def main():
 
             for human in humans:
                 overlap_car = [] 
+                print(human['json'])
                 h1 = {
                     "id": human['json'].get("data", {}).get("id", -1),
                     "face_image_path": human['json'].get("data", {}).get("faceSamples", {}).get("filePath", ""),
