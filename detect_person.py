@@ -66,7 +66,7 @@ async def send_car_async(image_data, rect):
                 return None
 
 
-frame_skip = 30
+frame_skip = 60
 
 ip = '192.168.0.100'  # 카메라 IP
 port = 80             # ONVIF 서비스 포트 (보통 80, 8080 등)
