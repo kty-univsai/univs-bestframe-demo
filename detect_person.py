@@ -2,11 +2,36 @@ import torch
 import cv2
 import time
 import math
+import aiohttp
+import asyncio
+import numpy as np
 from ultralytics import YOLO
 from onvif import ONVIFCamera
 from db_operations import insert_frame
 from db_pool import close_connection_pool  # 종료 시 커넥션 풀 닫기
 
+SERVER_URL = "http://localhost:5000/upload"
+
+# 비동기 HTTP 요청 함수
+async def send_frame_async(image_data):
+    async with aiohttp.ClientSession() as session:
+        async with session.post(SERVER_URL, data={'image': image_data}) as response:
+            result = await response.text()
+            return f"📡 서버 응답: {response.status}, {result}"
+
+# 비동기 HTTP 요청 함수
+async def send_human_async(image_data, rect):
+    async with aiohttp.ClientSession() as session:
+        async with session.post(SERVER_URL, data={'image': image_data}) as response:
+            result = await response.text()
+            return f"📡 서버 응답: {response.status}, {result}"
+        
+# 비동기 HTTP 요청 함수
+async def send_vehicle_async(image_data, rect):
+    async with aiohttp.ClientSession() as session:
+        async with session.post(SERVER_URL, data={'image': image_data}) as response:
+            result = await response.text()
+            return f"📡 서버 응답: {response.status}, {result}"        
 
 
 frame_skip = 30
@@ -18,7 +43,7 @@ passwd = 'admin'      # ONVIF 계정 비밀번호
 
 
 
-def is_overlapping_with_center_offset(rect1, rect2, offset):
+def is_overlapping_with_center_offset(rect1, rect2):
     # rect1의 중심좌표 계산
     x1_c = (rect1[0] + rect1[2]) / 2
     y1_c = (rect1[1] + rect1[3]) / 2
@@ -27,9 +52,11 @@ def is_overlapping_with_center_offset(rect1, rect2, offset):
     x2_c = (rect2[0] + rect2[2]) / 2
     y2_c = (rect2[1] + rect2[3]) / 2
 
+    vehicle_w = rect2[2] - rect2[0] / 2
+
     # 두 사각형 중심 간 거리 계산 (유클리드 거리)
     distance = math.sqrt((x2_c - x1_c) ** 2 + (y2_c - y1_c) ** 2)
-    return distance 
+    return distance < vehicle_w 
 
 def main():
     model = YOLO('yolo11n.pt')  # COCO 사전 학습
@@ -42,7 +69,7 @@ def main():
         print("GPU가 없어서 CPU로 실행됩니다.")
     
     # 3. 웹캠 열기 (0번 장치)
-    cap = cv2.VideoCapture("sample.mp4")
+    cap = cv2.VideoCapture("sample.webm")
     if not cap.isOpened():
         print(".")
         return
@@ -61,9 +88,10 @@ def main():
             
             for r in results:
                 object_idx = 1
-                
-                persons = []
-                cars = []
+                            
+                tasks = []
+                vehicles = []
+                humans = []
                 for box in r.boxes:
                     cls_id = int(box.cls[0])
                     conf = float(box.conf[0])
@@ -74,21 +102,27 @@ def main():
                     if label in ["person", "car"]:
                         x1, y1, x2, y2 = xyxy
 
-                        if label == "person":
-                            persons.append({
-                                "object_type": label,
-                                "rect": (x1, y1, x2, y2)
-                            })
+                        # if label == "person":
+                        #     persons.append({
+                        #         "object_type": label,
+                        #         "rect": (x1, y1, x2, y2)
+                        #     })
 
-                        if label == "car":
-                            cars.append({
-                                "object_type": label,
-                                "rect": (x1, y1, x2, y2)
-                            })
+                        # if label == "car":
+                        #     cars.append({
+                        #         "object_type": label,
+                        #         "rect": (x1, y1, x2, y2)
+                        #     })
+
 
                         cropped_frame = clone_frame[y1:y2, x1:x2]
-                        frameshot_filename = "./frameshots/frame" + str(current_frame) + "_" + label + "_" + str(object_idx)  + ".jpg"
-                        cv2.imwrite(frameshot_filename, cropped_frame)            
+                        _, img_encoded = cv2.imencode('.jpg', cropped_frame)
+                        
+                        if label == "car":
+                            tasks.append(send_vehicle_async(img_encoded.tobytes(), (x1, y1, x2, y2)))
+                        if label == "person":
+                            tasks.append(send_human_async(img_encoded.tobytes(), (x1, y1, x2, y2)))
+
 
                         cv2.rectangle(frame, (x1, y1), (x2, y2), (255,0,0), 2)
                         cv2.putText(frame, f"{label}", 
@@ -99,13 +133,17 @@ def main():
                 
                 for person in persons:
                     for car in cars:
-                        print("Person overlap + " + str(is_overlapping_with_center_offset(person['rect'], car['rect'], 100)))
+                        print("Person overlap + " + str(is_overlapping_with_center_offset(person['rect'], car['rect'])))
 
+            
 
 
         if raw_frame % frame_skip == 0:
-            filename = "./frames/frame_" + str(current_frame) + ".jpg"
-            cv2.imwrite(filename, frame)
+            # filename = "./frames/frame_" + str(current_frame) + ".jpg"
+            _, img_encoded = cv2.imencode('.jpg', frame)
+            # 비동기 HTTP 요청 실행 (서버 응답을 기다리지 않음)
+            send_frame_async(img_encoded.tobytes())
+
             current_frame += 1
 
         cv2.imshow("YOLOv11n - Person & Car", frame)        

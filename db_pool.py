@@ -4,17 +4,17 @@ from psycopg2 import pool
 # PostgreSQL 연결 정보
 DB_CONFIG = {
     "host": "localhost",
-    "port": "5432",
-    "database": "mydatabase",
-    "user": "myuser",
-    "password": "mypassword",
+    "port": "6543",
+    "database": "univs_studio",
+    "user": "univs",
+    "password": "dbslqjtm!",
 }
 
 # Connection Pool 생성
 try:
     db_pool = pool.SimpleConnectionPool(
         minconn=1,  # 최소 연결 개수
-        maxconn=5,  # 최대 연결 개수
+        maxconn=10,  # 최대 연결 개수
         **DB_CONFIG
     )
     print("✅ Connection Pool 생성 완료!")
