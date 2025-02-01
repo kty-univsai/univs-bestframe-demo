@@ -17,7 +17,7 @@ BEARER_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcmdfaWQiOiIyNSIsIm9yZ19
 async def send_frame_async(image_data, metadata):
     headers = {"Authorization": f"Bearer {BEARER_TOKEN}"}
     json_string = json.dumps(metadata)
-
+    print(json_string)
     async with aiohttp.ClientSession(headers=headers) as session:
         async with session.post(SERVER_URL + "/bestframe/frame", data={'image': image_data, 'metadata': json_string}) as response:
             if response.status == 200:
@@ -202,8 +202,7 @@ async def main():
 
 
 
-        if raw_frame % frame_skip == 0:
-            print("sex")
+        if raw_frame % frame_skip == 0: 
             _, img_encoded = cv2.imencode('.jpg', frame)
             # 비동기 HTTP 요청 실행 (서버 응답을 기다리지 않음)
             send_frame_async(img_encoded.tobytes(), metadata)
