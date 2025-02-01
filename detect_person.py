@@ -171,10 +171,13 @@ async def main():
                 overlap_car = [] 
                 print(human['json'])
                 h1 = {
-                    "id": human['json'].get("data", {}).get("id", -1),
-                    "face_image_path": human['json'].get("data", {}).get("faceSamples", {}).get("filePath", ""),
-                    "body_image_path": human['json'].get("data", {}).get("bodySamples", {}).get("filePath", "")
+                    "id": human['json'].get("data", {}).get("id", -1)
                 }
+                if human['json'].get("data", {}).get("faceSamples", {}) != None:
+                    h1["face_image_path"] = human['json'].get("data", {}).get("faceSamples", {}).get("filePath", "")
+                if human['json'].get("data", {}).get("faceSamples", {}) != None:
+                    h1["body_image_path"] = human['json'].get("data", {}).get("bodySamples", {}).get("filePath", "")
+                
                 for car in cars:
                     if is_overlapping_with_center_offset(human['rect'], car['rect']):
                         overlap_trigger = True
