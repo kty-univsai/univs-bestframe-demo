@@ -175,7 +175,7 @@ async def main():
                 }
                 if human['json'].get("data", {}).get("faceSamples", {}) != None:
                     h1["face_image_path"] = human['json'].get("data", {}).get("faceSamples", {}).get("filePath", "")
-                if human['json'].get("data", {}).get("faceSamples", {}) != None:
+                if human['json'].get("data", {}).get("bodySamples", {}) != None:
                     h1["body_image_path"] = human['json'].get("data", {}).get("bodySamples", {}).get("filePath", "")
                 
                 for car in cars:
