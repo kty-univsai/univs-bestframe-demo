@@ -78,7 +78,7 @@ async def send_car_async(image_data, rect):
             else:
                 return None
 
-image_url = "http://admin:dbslqjtm!@192.168.0.109/stw-cgi/video.cgi?msubmenu=snapshot&action=view"
+image_url = "http://admin:Dbslqjtm!@192.168.0.109/stw-cgi/video.cgi?msubmenu=snapshot&action=view"
 
 def is_overlapping_with_center_offset(rect1, rect2):
     # rect1의 중심좌표 계산
@@ -96,11 +96,18 @@ def is_overlapping_with_center_offset(rect1, rect2):
 
     return distance < car_w 
 
-# 웹에서 이미지 불러오는 함수
 def load_image_from_url(url):
-    response = requests.get(url)
-    image_array = np.frombuffer(response.content, np.uint8)
-    return cv2.imdecode(image_array, cv2.IMREAD_COLOR)
+    response = requests.get(url, stream=True)  # 스트리밍 모드로 요청
+    if response.status_code == 200:  # HTTP 응답이 정상인지 확인
+        image_array = np.frombuffer(response.content, np.uint8)
+        image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
+        
+        if image is None:
+            print("⚠️ OpenCV가 이미지를 디코딩하지 못했습니다.")
+        return image
+    else:
+        print(f"❌ 이미지 다운로드 실패! HTTP 상태 코드: {response.status_code}")
+        return None
 
 # 이미지 전처리
 def preprocess_image(image, input_size):
