@@ -14,10 +14,21 @@ from db_pool import close_connection_pool  # 종료 시 커넥션 풀 닫기
 SERVER_URL = "http://localhost:7800"
 BEARER_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcmdfaWQiOiIyNSIsIm9yZ19ncm91cF9pZCI6ImRlNTNhNzIyLTkzNDMtNDllMC1hMmVlLTQ0ZWFjNjlhZmU1NiIsIm5hbWUiOiJ1bml2cyIsImVtYWlsIjoia3R5QHVuaXZzLmFpIiwiaWF0IjoxNzM2Mzk1NDc5LCJleHAiOjM0NzI3OTA5NTh9.XzxfCy3V0wc8MpYO6m6LvT98UESKOrMXayITTJdncpA"
 
+def convert_to_native_types(data):
+    if isinstance(data, dict):
+        return {key: convert_to_native_types(value) for key, value in data.items()}
+    elif isinstance(data, list):
+        return [convert_to_native_types(item) for item in data]
+    elif isinstance(data, np.int64):
+        return int(data)  # Convert numpy.int64 to Python int
+    else:
+        return data
+
+
 async def send_frame_async(image_data, metadata):
     headers = {"Authorization": f"Bearer {BEARER_TOKEN}"}
-    print(metadata)
-    json_string = json.dumps(metadata)
+    metadata_native = convert_to_native_types(metadata)
+    json_string = json.dumps(metadata_native)
     async with aiohttp.ClientSession(headers=headers) as session:
         async with session.post(SERVER_URL + "/bestframe/frame", data={'image': image_data, 'metadata': json_string}) as response:
             if response.status == 200:
