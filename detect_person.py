@@ -122,6 +122,7 @@ async def main():
     current_frame = 0
     while True:
         ret, frame = cap.read()
+
         if not ret:
             print(".")
             break
@@ -157,10 +158,10 @@ async def main():
                             tasks.append(send_human_async(img_encoded.tobytes(), (x1, y1, x2, y2)))
 
 
-                        cv2.rectangle(frame, (x1, y1), (x2, y2), (255,0,0), 2)
-                        cv2.putText(frame, f"{label}", 
-                                    (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 
-                                    0.6, (0,255,0), 2)                    
+                        # cv2.rectangle(frame, (x1, y1), (x2, y2), (255,0,0), 2)
+                        # cv2.putText(frame, f"{label}", 
+                        #             (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 
+                        #             0.6, (0,255,0), 2)                    
 
                     object_idx += 1   
                 
@@ -211,7 +212,9 @@ async def main():
                 "car": car_metadata,
                 "events": {
                     "vehicle_overlap": overlap_trigger
-                }
+                },
+                "width": frame.shape[0],
+                "height": frame.shape[1]
             }
 
             _, img_encoded = cv2.imencode('.jpg', frame)
