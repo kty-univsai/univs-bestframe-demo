@@ -87,8 +87,7 @@ def is_overlapping_with_center_offset(rect1, rect2):
 
     # 두 사각형 중심 간 거리 계산 (유클리드 거리)
     distance = math.sqrt((x2_c - x1_c) ** 2 + (y2_c - y1_c) ** 2)
-    
-    print(str(distance) + "," + str(car_w))
+
     return distance < car_w 
 
 async def main():
@@ -184,12 +183,14 @@ async def main():
                         overlap_trigger = True
                         overlap_car.append(car['json'].get("data", {}).get("id")) 
                 h1["overlap"] = overlap_car
+                h1["rect"] = human['rect']
                 human_metadata.append(h1)
             
             for car in cars:
                 v1 = {
                     "id": car['json'].get("data", {}).get("id", -1),
                     "image_path": car['json'].get("data", {}).get("samples", {}).get("filePath", ""),
+                    "rect": car["rect"]
                 }
                 car_metadata.append(v1)
             
