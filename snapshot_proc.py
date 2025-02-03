@@ -78,7 +78,7 @@ async def send_car_async(image_data, rect):
             else:
                 return None
 
-image_url = "http://admin:Dbslqjtm!@192.168.0.109/stw-cgi/video.cgi?msubmenu=snapshot&action=view"
+image_url = "http://admin:dbslqjtm!@192.168.0.109/stw-cgi/video.cgi?msubmenu=snapshot&action=view"
 
 def is_overlapping_with_center_offset(rect1, rect2):
     # rect1의 중심좌표 계산
