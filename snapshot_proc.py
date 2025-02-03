@@ -132,9 +132,9 @@ async def main():
 
         # 2. 이미지 전처리
         input_size = (448, 448)  # YOLOv1 기본 입력 크기
-        preprocessed_image = preprocess_image(original_image, input_size)
+        frame = preprocess_image(original_image, input_size)
 
-        results = model(preprocessed_image)
+        results = model(frame)
         # clone_frame = frame.copy()
         
         tasks = []            
