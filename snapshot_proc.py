@@ -110,7 +110,7 @@ async def main():
 
         frame = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
         results = model.predict(frame)
-        clone_frame = frame.copy()
+        # clone_frame = frame.copy()
         
         tasks = []            
         cars = []
@@ -129,7 +129,7 @@ async def main():
                     x1, y1, x2, y2 = xyxy
 
 
-                    cropped_frame = clone_frame[y1:y2, x1:x2]
+                    cropped_frame = frame[y1:y2, x1:x2]
                     _, img_encoded = cv2.imencode('.jpg', cropped_frame)
                     
                     if label == "car":
