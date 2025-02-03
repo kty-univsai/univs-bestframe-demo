@@ -96,11 +96,11 @@ def is_overlapping_with_center_offset(rect1, rect2):
 
     return distance < car_w 
 
+# 웹에서 이미지 불러오는 함수
 def load_image_from_url(url):
     response = requests.get(url)
-    image_array = np.asarray(bytearray(response.content), dtype=np.uint8)
-    image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
-    return image
+    image_array = np.frombuffer(response.content, np.uint8)
+    return cv2.imdecode(image_array, cv2.IMREAD_COLOR)
 
 # 이미지 전처리
 def preprocess_image(image, input_size):
@@ -129,7 +129,7 @@ async def main():
         frame = load_image_from_url(image_url)
 
         results = model(frame)
-        # clone_frame = frame.copy()
+        clone_frame = frame.copy()
         
         tasks = []            
         cars = []
