@@ -126,9 +126,9 @@ async def main():
 
     while True:
  
-        original_image = load_image_from_url(image_url)
+        frame = load_image_from_url(image_url)
 
-        results = model(original_image)
+        results = model(frame)
         # clone_frame = frame.copy()
         
         tasks = []            
