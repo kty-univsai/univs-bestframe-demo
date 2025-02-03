@@ -213,8 +213,8 @@ async def main():
                 "events": {
                     "vehicle_overlap": overlap_trigger
                 },
-                "width": frame.shape[0],
-                "height": frame.shape[1]
+                "width": frame.shape[1],
+                "height": frame.shape[0]
             }
 
             _, img_encoded = cv2.imencode('.jpg', frame)
