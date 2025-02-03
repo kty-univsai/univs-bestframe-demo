@@ -16,8 +16,8 @@ BEARER_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcmdfaWQiOiIyNSIsIm9yZ19
 
 async def send_frame_async(image_data, metadata):
     headers = {"Authorization": f"Bearer {BEARER_TOKEN}"}
-    json_string = json.dumps(metadata)
     print(metadata)
+    json_string = json.dumps(metadata)
     async with aiohttp.ClientSession(headers=headers) as session:
         async with session.post(SERVER_URL + "/bestframe/frame", data={'image': image_data, 'metadata': json_string}) as response:
             if response.status == 200:
