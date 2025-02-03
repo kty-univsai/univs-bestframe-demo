@@ -17,6 +17,7 @@ BEARER_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcmdfaWQiOiIyNSIsIm9yZ19
 async def send_frame_async(image_data, metadata):
     headers = {"Authorization": f"Bearer {BEARER_TOKEN}"}
     json_string = json.dumps(metadata)
+    print(metadata)
     async with aiohttp.ClientSession(headers=headers) as session:
         async with session.post(SERVER_URL + "/bestframe/frame", data={'image': image_data, 'metadata': json_string}) as response:
             if response.status == 200:
@@ -183,14 +184,14 @@ async def main():
                         overlap_trigger = True
                         overlap_car.append(car['json'].get("data", {}).get("id")) 
                 h1["overlap"] = overlap_car
-                # h1["rect"] = human['rect']
+                h1["rect"] = human['rect']
                 human_metadata.append(h1)
             
             for car in cars:
                 v1 = {
                     "id": car['json'].get("data", {}).get("id", -1),
                     "image_path": car['json'].get("data", {}).get("samples", {}).get("filePath", ""),
-                    # "rect": car["rect"]
+                    "rect": car["rect"]
                 }
                 car_metadata.append(v1)
             
