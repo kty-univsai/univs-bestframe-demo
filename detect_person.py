@@ -184,14 +184,14 @@ async def main():
                         overlap_trigger = True
                         overlap_car.append(car['json'].get("data", {}).get("id")) 
                 h1["overlap"] = overlap_car
-                h1["rect"] = human['rect']
+                h1["rect"] = [human['rect'][0],human['rect'][1], human['rect'][2], human['rect'][3]]
                 human_metadata.append(h1)
             
             for car in cars:
                 v1 = {
                     "id": car['json'].get("data", {}).get("id", -1),
                     "image_path": car['json'].get("data", {}).get("samples", {}).get("filePath", ""),
-                    "rect": car["rect"]
+                    "rect": [car['rect'][0],car['rect'][1], car['rect'][2], car['rect'][3]]
                 }
                 car_metadata.append(v1)
             
