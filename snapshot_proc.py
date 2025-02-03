@@ -104,15 +104,14 @@ def load_image_from_url(url):
 
 # 이미지 전처리
 def preprocess_image(image, input_size):
-    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)  # BGR에서 RGB로 변환
-    image = cv2.resize(image, input_size)  # 모델 입력 크기로 리사이즈
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)  
+    image = cv2.resize(image, input_size) 
     image = Image.fromarray(image)
     transform = transforms.Compose([
-        transforms.ToTensor(),  # 이미지를 Tensor로 변환
-        # 필요한 경우 추가적인 전처리 적용
+        transforms.ToTensor(),  
     ])
     image = transform(image)
-    image = image.unsqueeze(0)  # 배치 차원 추가
+    image = image.unsqueeze(0)  
     return image
 
 async def main():
@@ -126,15 +125,10 @@ async def main():
         print("GPU가 없어서 CPU로 실행됩니다.")    
 
     while True:
-
  
         original_image = load_image_from_url(image_url)
 
-        # 2. 이미지 전처리
-        input_size = (448, 448)  # YOLOv1 기본 입력 크기
-        frame = preprocess_image(original_image, input_size)
-
-        results = model(frame)
+        results = model(original_image)
         # clone_frame = frame.copy()
         
         tasks = []            
