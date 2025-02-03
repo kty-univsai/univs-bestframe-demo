@@ -6,6 +6,8 @@ import requests
 import asyncio
 import json
 import numpy as np
+from torchvision import transforms
+from PIL import Image
 from ultralytics import YOLO
 from onvif import ONVIFCamera
 from db_operations import insert_frame
@@ -94,6 +96,25 @@ def is_overlapping_with_center_offset(rect1, rect2):
 
     return distance < car_w 
 
+def load_image_from_url(url):
+    response = requests.get(url)
+    image_array = np.asarray(bytearray(response.content), dtype=np.uint8)
+    image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
+    return image
+
+# 이미지 전처리
+def preprocess_image(image, input_size):
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)  # BGR에서 RGB로 변환
+    image = cv2.resize(image, input_size)  # 모델 입력 크기로 리사이즈
+    image = Image.fromarray(image)
+    transform = transforms.Compose([
+        transforms.ToTensor(),  # 이미지를 Tensor로 변환
+        # 필요한 경우 추가적인 전처리 적용
+    ])
+    image = transform(image)
+    image = image.unsqueeze(0)  # 배치 차원 추가
+    return image
+
 async def main():
     model = YOLO('yolo11n.pt', verbose=False)  # COCO 사전 학습
     model.overrides['conf'] = 0.25  # confidence threshold 설정
@@ -105,11 +126,15 @@ async def main():
         print("GPU가 없어서 CPU로 실행됩니다.")    
 
     while True:
-        response = requests.get(image_url)
-        image_array = np.asarray(bytearray(response.content), dtype=np.uint8)
 
-        frame = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
-        results = model.predict(frame)
+ 
+        original_image = load_image_from_url(image_url)
+
+        # 2. 이미지 전처리
+        input_size = (448, 448)  # YOLOv1 기본 입력 크기
+        preprocessed_image = preprocess_image(original_image, input_size)
+
+        results = model(preprocessed_image)
         # clone_frame = frame.copy()
         
         tasks = []            
