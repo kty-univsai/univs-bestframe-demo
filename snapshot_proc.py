@@ -1,8 +1,7 @@
 import torch
 import cv2
-import time
 import math
-import requests
+import aiohttp
 import asyncio
 import json
 import numpy as np
