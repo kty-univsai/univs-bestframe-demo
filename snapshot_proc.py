@@ -103,31 +103,6 @@ def is_overlapping_with_center_offset(rect1, rect2):
 
     return distance < car_w 
 
-def load_image_from_url(url):
-    response = requests.get(url, stream=True)  # 스트리밍 모드로 요청
-    if response.status_code == 200:  # HTTP 응답이 정상인지 확인
-        image_array = np.frombuffer(response.content, np.uint8)
-        image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
-        
-        if image is None:
-            print("⚠️ OpenCV가 이미지를 디코딩하지 못했습니다.")
-        return image
-    else:
-        print(f"❌ 이미지 다운로드 실패! HTTP 상태 코드: {response.status_code}")
-        return None
-
-# 이미지 전처리
-def preprocess_image(image, input_size):
-    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)  
-    image = cv2.resize(image, input_size) 
-    image = Image.fromarray(image)
-    transform = transforms.Compose([
-        transforms.ToTensor(),  
-    ])
-    image = transform(image)
-    image = image.unsqueeze(0)  
-    return image
-
 async def main():
     model = YOLO('yolo11n.pt', verbose=False)  # COCO 사전 학습
     model.overrides['conf'] = 0.25  # confidence threshold 설정
