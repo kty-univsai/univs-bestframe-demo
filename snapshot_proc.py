@@ -5,12 +5,7 @@ import aiohttp
 import asyncio
 import json
 import numpy as np
-from torchvision import transforms
-from PIL import Image
 from ultralytics import YOLO
-from onvif import ONVIFCamera
-from db_operations import insert_frame
-from db_pool import close_connection_pool  # 종료 시 커넥션 풀 닫기
 from onvif_snapshot import get_onvif_snapshot
 
 
