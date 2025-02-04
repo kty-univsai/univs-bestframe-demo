@@ -57,11 +57,6 @@ if __name__ == "__main__":
         # 스냅샷 가져오기
         snapshot_img = get_onvif_snapshot(ip, port, user, password)
 
-        # 이미지 화면에 표시
-        cv2.imshow("ONVIF Snapshot", snapshot_img)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
-
         # 이미지 파일로 저장
         cv2.imwrite("snapshot.jpg", snapshot_img)
         print("✅ 스냅샷을 'snapshot.jpg'로 저장했습니다.")
