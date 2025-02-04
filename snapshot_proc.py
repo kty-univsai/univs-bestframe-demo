@@ -15,7 +15,7 @@ BEARER_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcmdfaWQiOiIyNSIsIm9yZ19
 ip = "192.168.0.232"     # 카메라 IP
 port = 80               # ONVIF 서비스 포트 (기본값 80)
 user = "admin"          # ONVIF 사용자
-password = "qazwsx123!"      # ONVIF 비밀번호
+password = "dbslqjtm!2"      # ONVIF 비밀번호
 
 def convert_to_native_types(data):
     if isinstance(data, dict):
@@ -78,8 +78,6 @@ async def send_car_async(image_data, rect):
                     return None        
             else:
                 return None
-
-image_url = "http://admin:dbslqjtm!@192.168.0.109/stw-cgi/video.cgi?msubmenu=snapshot&action=view"
 
 def is_overlap(boxA, boxB):
     Ax1, Ay1, Ax2, Ay2 = boxA
