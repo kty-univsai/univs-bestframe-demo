@@ -81,21 +81,19 @@ async def send_car_async(image_data, rect):
 
 image_url = "http://admin:dbslqjtm!@192.168.0.109/stw-cgi/video.cgi?msubmenu=snapshot&action=view"
 
-def is_overlapping_with_center_offset(rect1, rect2):
-    # rect1의 중심좌표 계산
-    x1_c = (rect1[0] + rect1[2]) / 2
-    y1_c = (rect1[1] + rect1[3]) / 2
+def is_overlap(boxA, boxB):
+    Ax1, Ay1, Ax2, Ay2 = boxA
+    Bx1, By1, Bx2, By2 = boxB
 
-    # rect2의 중심좌표 계산
-    x2_c = (rect2[0] + rect2[2]) / 2
-    y2_c = (rect2[1] + rect2[3]) / 2
+    inter_x1 = max(Ax1, Bx1)
+    inter_y1 = max(Ay1, By1)
+    inter_x2 = min(Ax2, Bx2)
+    inter_y2 = min(Ay2, By2)
 
-    car_w = rect2[2] - rect2[0] / 2
+    if inter_x2 > inter_x1 and inter_y2 > inter_y1:
+        return True
+    return False
 
-    # 두 사각형 중심 간 거리 계산 (유클리드 거리)
-    distance = math.sqrt((x2_c - x1_c) ** 2 + (y2_c - y1_c) ** 2)
-
-    return distance < car_w 
 
 async def main():
     model = YOLO('yolo11n.pt', verbose=False)  # COCO 사전 학습
@@ -173,7 +171,7 @@ async def main():
                 h1["body_image_path"] = human['json'].get("data", {}).get("bodySamples", {}).get("filePath", "")
             
             for car in cars:
-                if is_overlapping_with_center_offset(human['rect'], car['rect']):
+                if is_overlap(human['rect'], car['rect']):
                     overlap_trigger = True
                     overlap_car.append(car['json'].get("data", {}).get("id")) 
             h1["overlap"] = overlap_car
