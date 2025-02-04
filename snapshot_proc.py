@@ -96,7 +96,7 @@ def is_overlap(boxA, boxB):
 
 
 async def main():
-    model = YOLO('yolo11n.pt', verbose=False)  # COCO 사전 학습
+    model = YOLO('yolo11m.pt', verbose=False)  # COCO 사전 학습
     model.overrides['conf'] = 0.25  # confidence threshold 설정
 
     if torch.cuda.is_available():
