@@ -7,6 +7,7 @@ import json
 import numpy as np
 from ultralytics import YOLO
 from onvif_snapshot import get_onvif_snapshot
+from lpr_proc import lpr_init, lpr_de_init, do_lpr
 
 
 SERVER_URL = "http://localhost:7800"
@@ -94,6 +95,9 @@ def is_overlap(boxA, boxB):
 
 
 async def main():
+    # LPR init
+    lpr_init()
+
     model = YOLO('yolo11m.pt', verbose=False)  # COCO 사전 학습
     model.overrides['conf'] = 0.25  # confidence threshold 설정
 
@@ -104,11 +108,9 @@ async def main():
         print("GPU가 없어서 CPU로 실행됩니다.")    
 
     while True:
- 
         frame = get_onvif_snapshot(ip, port, user, password)
-
         results = model(frame)
-        
+    
         tasks = []            
         cars = []
         humans = []
@@ -125,20 +127,13 @@ async def main():
                 if label in ["person", "car"]:
                     x1, y1, x2, y2 = xyxy
 
-
                     cropped_frame = frame[y1:y2, x1:x2]
                     _, img_encoded = cv2.imencode('.jpg', cropped_frame)
                     
                     if label == "car":
                         tasks.append(send_car_async(img_encoded.tobytes(), (x1, y1, x2, y2)))
                     if label == "person":
-                        tasks.append(send_human_async(img_encoded.tobytes(), (x1, y1, x2, y2)))
-
-
-                    # cv2.rectangle(frame, (x1, y1), (x2, y2), (255,0,0), 2)
-                    # cv2.putText(frame, f"{label}", 
-                    #             (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 
-                    #             0.6, (0,255,0), 2)                    
+                        tasks.append(send_human_async(img_encoded.tobytes(), (x1, y1, x2, y2)))              
 
                 object_idx += 1   
             

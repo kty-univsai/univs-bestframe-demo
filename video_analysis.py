@@ -7,12 +7,10 @@ import asyncio
 import json
 import numpy as np
 from ultralytics import YOLO
-from onvif import ONVIFCamera
-from db_operations import insert_frame
-from db_pool import close_connection_pool  # 종료 시 커넥션 풀 닫기
 
 SERVER_URL = "http://localhost:7800"
 BEARER_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcmdfaWQiOiIyNSIsIm9yZ19ncm91cF9pZCI6ImRlNTNhNzIyLTkzNDMtNDllMC1hMmVlLTQ0ZWFjNjlhZmU1NiIsIm5hbWUiOiJ1bml2cyIsImVtYWlsIjoia3R5QHVuaXZzLmFpIiwiaWF0IjoxNzM2Mzk1NDc5LCJleHAiOjM0NzI3OTA5NTh9.XzxfCy3V0wc8MpYO6m6LvT98UESKOrMXayITTJdncpA"
+FRAME_SKIP = 60
 
 def convert_to_native_types(data):
     if isinstance(data, dict):
@@ -77,14 +75,6 @@ async def send_car_async(image_data, rect):
                 return None
 
 
-frame_skip = 60
-
-ip = '192.168.0.100'  # 카메라 IP
-port = 80             # ONVIF 서비스 포트 (보통 80, 8080 등)
-user = 'admin'        # ONVIF 계정
-passwd = 'admin'      # ONVIF 계정 비밀번호
-
-
 
 def is_overlapping_with_center_offset(rect1, rect2):
     # rect1의 중심좌표 계산
@@ -103,6 +93,8 @@ def is_overlapping_with_center_offset(rect1, rect2):
     return distance < car_w 
 
 async def main():
+    # 차번 모듈 초기화
+
     model = YOLO('yolo11n.pt', verbose=False)  # COCO 사전 학습
     model.overrides['conf'] = 0.25  # confidence threshold 설정
 
@@ -127,7 +119,7 @@ async def main():
             print(".")
             break
         
-        if raw_frame % frame_skip == 0:
+        if raw_frame % FRAME_SKIP == 0:
             results = model.predict(frame)
             clone_frame = frame.copy()
             
@@ -152,16 +144,16 @@ async def main():
                         cropped_frame = clone_frame[y1:y2, x1:x2]
                         _, img_encoded = cv2.imencode('.jpg', cropped_frame)
                         
-                        if label == "car":
-                            tasks.append(send_car_async(img_encoded.tobytes(), (x1, y1, x2, y2)))
-                        if label == "person":
-                            tasks.append(send_human_async(img_encoded.tobytes(), (x1, y1, x2, y2)))
+                        # if label == "car":
+                        #     tasks.append(send_car_async(img_encoded.tobytes(), (x1, y1, x2, y2)))
+                        # if label == "person":
+                        #     tasks.append(send_human_async(img_encoded.tobytes(), (x1, y1, x2, y2)))
 
 
-                        # cv2.rectangle(frame, (x1, y1), (x2, y2), (255,0,0), 2)
-                        # cv2.putText(frame, f"{label}", 
-                        #             (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 
-                        #             0.6, (0,255,0), 2)                    
+                        cv2.rectangle(frame, (x1, y1), (x2, y2), (255,0,0), 2)
+                        cv2.putText(frame, f"{label}", 
+                                    (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 
+                                    0.6, (0,255,0), 2)                    
 
                     object_idx += 1   
                 
@@ -169,57 +161,57 @@ async def main():
             results = await asyncio.gather(*tasks)
             valid_results = list(filter(None, results))
 
-            # 결과 출력
-            for res in valid_results:
-                if res['type'] == 'car':
-                    cars.append(res)
-                elif res['type'] == 'human':
-                    humans.append(res) 
+            # # 결과 출력
+            # for res in valid_results:
+            #     if res['type'] == 'car':
+            #         cars.append(res)
+            #     elif res['type'] == 'human':
+            #         humans.append(res) 
             
-            overlap_trigger = False
-            human_metadata = []
-            car_metadata = []
+            # overlap_trigger = False
+            # human_metadata = []
+            # car_metadata = []
 
-            for human in humans:
-                overlap_car = [] 
+            # for human in humans:
+            #     overlap_car = [] 
                
-                h1 = {
-                    "id": human['json'].get("data", {}).get("id", -1)
-                }
-                if human['json'].get("data", {}).get("faceSamples", {}) != None:
-                    h1["face_image_path"] = human['json'].get("data", {}).get("faceSamples", {}).get("filePath", "")
-                if human['json'].get("data", {}).get("bodySamples", {}) != None:
-                    h1["body_image_path"] = human['json'].get("data", {}).get("bodySamples", {}).get("filePath", "")
+            #     h1 = {
+            #         "id": human['json'].get("data", {}).get("id", -1)
+            #     }
+            #     if human['json'].get("data", {}).get("faceSamples", {}) != None:
+            #         h1["face_image_path"] = human['json'].get("data", {}).get("faceSamples", {}).get("filePath", "")
+            #     if human['json'].get("data", {}).get("bodySamples", {}) != None:
+            #         h1["body_image_path"] = human['json'].get("data", {}).get("bodySamples", {}).get("filePath", "")
                 
-                for car in cars:
-                    if is_overlapping_with_center_offset(human['rect'], car['rect']):
-                        overlap_trigger = True
-                        overlap_car.append(car['json'].get("data", {}).get("id")) 
-                h1["overlap"] = overlap_car
-                h1["rect"] = [human['rect'][0],human['rect'][1], human['rect'][2], human['rect'][3]]
-                human_metadata.append(h1)
+            #     for car in cars:
+            #         if is_overlapping_with_center_offset(human['rect'], car['rect']):
+            #             overlap_trigger = True
+            #             overlap_car.append(car['json'].get("data", {}).get("id")) 
+            #     h1["overlap"] = overlap_car
+            #     h1["rect"] = [human['rect'][0],human['rect'][1], human['rect'][2], human['rect'][3]]
+            #     human_metadata.append(h1)
             
-            for car in cars:
-                v1 = {
-                    "id": car['json'].get("data", {}).get("id", -1),
-                    "image_path": car['json'].get("data", {}).get("samples", {}).get("filePath", ""),
-                    "rect": [car['rect'][0],car['rect'][1], car['rect'][2], car['rect'][3]]
-                }
-                car_metadata.append(v1)
+            # for car in cars:
+            #     v1 = {
+            #         "id": car['json'].get("data", {}).get("id", -1),
+            #         "image_path": car['json'].get("data", {}).get("samples", {}).get("filePath", ""),
+            #         "rect": [car['rect'][0],car['rect'][1], car['rect'][2], car['rect'][3]]
+            #     }
+            #     car_metadata.append(v1)
             
-            metadata= {
-                "human": human_metadata,
-                "car": car_metadata,
-                "events": {
-                    "vehicle_overlap": overlap_trigger
-                },
-                "width": frame.shape[1],
-                "height": frame.shape[0]
-            }
+            # metadata= {
+            #     "human": human_metadata,
+            #     "car": car_metadata,
+            #     "events": {
+            #         "vehicle_overlap": overlap_trigger
+            #     },
+            #     "width": frame.shape[1],
+            #     "height": frame.shape[0]
+            # }
 
             _, img_encoded = cv2.imencode('.jpg', frame)
             # 비동기 HTTP 요청 실행 (서버 응답을 기다리지 않음)
-            await send_frame_async(img_encoded.tobytes(), metadata)
+          #  await send_frame_async(img_encoded.tobytes(), metadata)
 
             current_frame += 1
 
