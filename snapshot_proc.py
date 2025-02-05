@@ -162,7 +162,7 @@ async def main():
                     _, img_encoded = cv2.imencode('.jpg', cropped_frame)
                     
                     if label == "car":
-                        tasks.append(send_car_async(img_encoded.tobytes(), cropped_frame.tobytes(), (x1, y1, x2, y2)))
+                        tasks.append(send_car_async(img_encoded.tobytes(), (x1, y1, x2, y2)))
                     if label == "person":
                         tasks.append(send_human_async(img_encoded.tobytes(), (x1, y1, x2, y2)))              
 
