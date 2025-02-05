@@ -5,9 +5,10 @@ import aiohttp
 import asyncio
 import json
 import numpy as np
+import ultimateAlprSdk
+
 from ultralytics import YOLO
 from onvif_snapshot import get_onvif_snapshot
-from lpr_proc import lpr_init, lpr_de_init, do_lpr
 
 
 SERVER_URL = "http://localhost:7800"
@@ -17,6 +18,38 @@ ip = "192.168.0.232"     # 카메라 IP
 port = 80               # ONVIF 서비스 포트 (기본값 80)
 user = "admin"          # ONVIF 사용자
 password = "dbslqjtm!2"      # ONVIF 비밀번호
+
+
+JSON_CONFIG = {
+    "debug_level": "info",
+    "debug_write_input_image_enabled": False,
+    "debug_internal_data_path": ".",
+    
+    "num_threads": -1,
+    "gpgpu_enabled": True,
+    "max_latency": -1,
+
+    "klass_vcr_gamma": 1.5,
+    
+    "detect_roi": [0, 0, 0, 0],
+    "detect_minscore": 0.1,
+
+    "car_noplate_detect_min_score": 0.8,
+    
+    "pyramidal_search_enabled": True,
+    "pyramidal_search_sensitivity": 0.28,
+    "pyramidal_search_minscore": 0.3,
+    "pyramidal_search_min_image_size_inpixels": 800,
+    
+    "recogn_rectify_enabled": True,
+    "recogn_minscore": 0.3,
+    "recogn_score_type": "min",
+
+    "assets_folder": "/home/bearkim/samples/ultimateALPR-SDK/assets",
+    "charset": "korean", 
+    "openvino_enabled": False
+}
+
 
 def convert_to_native_types(data):
     if isinstance(data, dict):
@@ -69,7 +102,15 @@ async def send_car_async(image_data, image_byte, rect):
         width = rect[2] - rect[0]
         height = rect[3] - rect[1]
         
-        do_lpr(image_byte,  width, height)
+        result = ultimateAlprSdk.UltAlprSdkEngine_process(
+                    0,
+                    image_byte, # type(x) == bytes
+                    width,
+                    height,
+                    0, # stride
+                    1 # exifOrientation (already rotated in load_image -> use default value: 1)
+        )        
+
 
         async with session.post(SERVER_URL + "/bestframe/car", data={'image': image_data}) as response:
             if response.status == 200:
@@ -101,7 +142,7 @@ def is_overlap(boxA, boxB):
 
 async def main():
     # LPR init
-    lpr_init()
+    ultimateAlprSdk.UltAlprSdkEngine_init(json.dumps(JSON_CONFIG))
 
     model = YOLO('yolo11m.pt', verbose=False)  # COCO 사전 학습
     model.overrides['conf'] = 0.25  # confidence threshold 설정
@@ -202,6 +243,6 @@ async def main():
             break
 
     cv2.destroyAllWindows()
-    lpr_de_init()
+    ultimateAlprSdk.UltAlprSdkEngine_deInit()
 
 asyncio.run(main())
