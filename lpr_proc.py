@@ -139,7 +139,7 @@ if __name__ == "__main__":
                )
 
 def lpr_init():
-    ultimateAlprSdk.UltAlprSdkEngine_init(JSON_CONFIG)
+    ultimateAlprSdk.UltAlprSdkEngine_init(json.dumps(JSON_CONFIG))
 
 def do_lpr(image_byte, image_type, width, height):
     result = ultimateAlprSdk.UltAlprSdkEngine_process(
