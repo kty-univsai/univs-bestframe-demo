@@ -69,7 +69,7 @@ async def send_car_async(image_data, rect):
         width = rect[2] - rect[0]
         height = rect[3] - rect[1]
         
-        print (str(width) + "," + str(height))
+        print (str(image_data))
         do_lpr(image_data,  width, height)
 
         async with session.post(SERVER_URL + "/bestframe/car", data={'image': image_data}) as response:

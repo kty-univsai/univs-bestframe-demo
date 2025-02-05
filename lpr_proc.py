@@ -125,6 +125,8 @@ if __name__ == "__main__":
                 ultimateAlprSdk.UltAlprSdkEngine_init(json.dumps(JSON_CONFIG))
                )
 
+    print(str(imageType))
+    print(str(image.tobytes()))
     checkResult("Process",
                 ultimateAlprSdk.UltAlprSdkEngine_process(
                     imageType,
