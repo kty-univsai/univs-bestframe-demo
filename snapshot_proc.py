@@ -102,11 +102,13 @@ async def send_car_async(image_data, image_byte, rect):
         width = rect[2] - rect[0]
         height = rect[3] - rect[1]
         
-        result = ultimateAlprSdk.UltAlprSdkEngine_process(
+        ultimateAlprSdk.UltAlprSdkEngine_process(
                     0,
-                    image_byte, # type(x) == bytes
+                    image_byte, 
                     width,
-                    height
+                    height,
+                    0,
+                    1
         )        
 
 
