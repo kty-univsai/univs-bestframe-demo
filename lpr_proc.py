@@ -27,7 +27,11 @@ JSON_CONFIG = {
     
     "recogn_rectify_enabled": True,
     "recogn_minscore": 0.3,
-    "recogn_score_type": "min"
+    "recogn_score_type": "min",
+
+    "assets_folder": "/home/univs/samples/ultimateALPR-SDK/assets",
+    "charset": "korean", 
+    "openvino_enabled": False
 }
 
 IMAGE_TYPES_MAPPING = { 
