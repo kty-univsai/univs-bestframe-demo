@@ -95,11 +95,15 @@ def upload_image():
                     0, # stride
                     1 # exifOrientation (already rotated in load_image -> use default value: 1)
                 )
-  
-        # JSON 응답 반환
-        return jsonify({            
-            "result": str(result)            
-        })
+        if not result.isOK():
+            return jsonify({            
+                "code": "failure"            
+            })
+        else:
+            return jsonify({            
+                "code": "success",
+                "data": result.json()            
+            })
     
 
     except Exception as e:
