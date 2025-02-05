@@ -106,9 +106,7 @@ async def send_car_async(image_data, image_byte, rect):
                     0,
                     image_byte, # type(x) == bytes
                     width,
-                    height,
-                    0, # stride
-                    1 # exifOrientation (already rotated in load_image -> use default value: 1)
+                    height
         )        
 
 
