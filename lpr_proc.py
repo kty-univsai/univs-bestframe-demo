@@ -3,6 +3,8 @@ import argparse
 import json
 import os.path
 
+TAG = "SEX"
+
 # Defines the default JSON configuration. More information at https://www.doubango.org/SDKs/anpr/docs/Configuration_options.html
 JSON_CONFIG = {
     "debug_level": "info",
@@ -29,7 +31,7 @@ JSON_CONFIG = {
     "recogn_minscore": 0.3,
     "recogn_score_type": "min",
 
-    "assets_folder": "/home/univs/samples/ultimateALPR-SDK/assets",
+    "assets_folder": "/home/bearkim/samples/ultimateALPR-SDK/assets",
     "charset": "korean", 
     "openvino_enabled": False
 }
@@ -55,7 +57,7 @@ def load_pil_image(path):
                 ret[decoded] = value
             orientation  = ret["Orientation"]
     except Exception as e:
-        print(TAG + "An exception occurred: {}".format(e))
+        print("An exception occurred: {}".format(e))
         traceback.print_exc()
 
     if orientation > 1:
@@ -83,8 +85,8 @@ if __name__ == "__main__":
     """)
 
     parser.add_argument("--image", required=True, help="Path to the image with ALPR data to recognize")
-    parser.add_argument("--assets", required=False, default="../../../assets", help="Path to the assets folder")
-    parser.add_argument("--charset", required=False, default="latin", help="Defines the recognition charset (a.k.a alphabet) value (latin, korean, chinese...)")
+    parser.add_argument("--assets", required=False, default="/home/bearkim/samples/ultimateALPR-SDK/assets", help="Path to the assets folder")
+    parser.add_argument("--charset", required=False, default="korean", help="Defines the recognition charset (a.k.a alphabet) value (latin, korean, chinese...)")
     parser.add_argument("--car_noplate_detect_enabled", required=False, default=False, help="Whether to detect and return cars with no plate")
     parser.add_argument("--ienv_enabled", required=False, default=False, help="Whether to enable Image Enhancement for Night-Vision (IENV). More info about IENV at https://www.doubango.org/SDKs/anpr/docs/Features.html#image-enhancement-for-night-vision-ienv. Default: true for x86-64 and false for ARM.")
     parser.add_argument("--openvino_enabled", required=False, default=True, help="Whether to enable OpenVINO. Tensorflow will be used when OpenVINO is disabled")
@@ -125,8 +127,10 @@ if __name__ == "__main__":
                 ultimateAlprSdk.UltAlprSdkEngine_init(json.dumps(JSON_CONFIG))
                )
 
+    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     print(str(imageType))
-    print(str(image.tobytes()))
+
+    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     checkResult("Process",
                 ultimateAlprSdk.UltAlprSdkEngine_process(
                     imageType,
@@ -149,7 +153,7 @@ def lpr_init():
 
 def do_lpr(image_byte,  width, height):
     result = ultimateAlprSdk.UltAlprSdkEngine_process(
-                    ultimateAlprSdk.ULTALPR_SDK_IMAGE_TYPE_RGB24,
+                    0,
                     image_byte, # type(x) == bytes
                     width,
                     height,
