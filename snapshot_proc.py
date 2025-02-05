@@ -69,7 +69,8 @@ async def send_car_async(image_data, rect):
         width = rect[2] - rect[0]
         height = rect[3] - rect[1]
         
-        do_lpr(image_data, "jpg", width, height)
+        print (str(width) + "," + str(height))
+        do_lpr(image_data, ultimateAlprSdk.ULTALPR_SDK_IMAGE_TYPE_RGB24, width, height)
 
         async with session.post(SERVER_URL + "/bestframe/car", data={'image': image_data}) as response:
             if response.status == 200:
