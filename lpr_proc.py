@@ -141,8 +141,8 @@ if __name__ == "__main__":
 def lpr_init():
     ultimateAlprSdk.UltAlprSdkEngine_init(JSON_CONFIG)
 
-def do_lpr(image_byte, image_type):
-    ultimateAlprSdk.UltAlprSdkEngine_process(
+def do_lpr(image_byte, image_type, width, height):
+    result = ultimateAlprSdk.UltAlprSdkEngine_process(
                     image_type,
                     image_byte, # type(x) == bytes
                     width,
@@ -150,6 +150,7 @@ def do_lpr(image_byte, image_type):
                     0, # stride
                     1 # exifOrientation (already rotated in load_image -> use default value: 1)
                 )
+    print(result)
 
 def lpr_de_init():
     ultimateAlprSdk.UltAlprSdkEngine_deInit()
