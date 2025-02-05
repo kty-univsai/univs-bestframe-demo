@@ -87,7 +87,7 @@ def upload_image():
         # 이미지를 Pillow 객체로 변환
         image, imageType = load_pil_image(file)
         width, height = image.size
-        ultimateAlprSdk.UltAlprSdkEngine_process(
+        result = ultimateAlprSdk.UltAlprSdkEngine_process(
                     imageType,
                     image.tobytes(), # type(x) == bytes
                     width,
@@ -97,8 +97,8 @@ def upload_image():
                 )
   
         # JSON 응답 반환
-        return jsonify({
-            "message": "Image processed successfully",            
+        return jsonify({            
+            "result": str(result)            
         })
     
 

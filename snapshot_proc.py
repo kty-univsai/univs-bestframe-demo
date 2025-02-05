@@ -5,7 +5,6 @@ import aiohttp
 import asyncio
 import json
 import numpy as np
-import ultimateAlprSdk
 
 from ultralytics import YOLO
 from onvif_snapshot import get_onvif_snapshot
@@ -95,22 +94,10 @@ async def send_human_async(image_data, rect):
             else:
                 return None
         
-async def send_car_async(image_data, image_byte, rect):
+async def send_car_async(image_data, rect):
     headers = {"Authorization": f"Bearer {BEARER_TOKEN}"}
     
     async with aiohttp.ClientSession(headers=headers) as session:
-        width = rect[2] - rect[0]
-        height = rect[3] - rect[1]
-        
-        ultimateAlprSdk.UltAlprSdkEngine_process(
-                    0,
-                    image_byte, 
-                    width,
-                    height,
-                    0,
-                    1
-        )        
-
 
         async with session.post(SERVER_URL + "/bestframe/car", data={'image': image_data}) as response:
             if response.status == 200:
@@ -141,8 +128,6 @@ def is_overlap(boxA, boxB):
 
 
 async def main():
-    # LPR init
-    ultimateAlprSdk.UltAlprSdkEngine_init(json.dumps(JSON_CONFIG))
 
     model = YOLO('yolo11m.pt', verbose=False)  # COCO 사전 학습
     model.overrides['conf'] = 0.25  # confidence threshold 설정
@@ -243,6 +228,6 @@ async def main():
             break
 
     cv2.destroyAllWindows()
-    ultimateAlprSdk.UltAlprSdkEngine_deInit()
+
 
 asyncio.run(main())

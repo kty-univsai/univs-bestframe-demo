@@ -2,6 +2,8 @@ import ultimateAlprSdk
 import argparse
 import json
 import os.path
+import cv2
+
 
 TAG = "SEX"
 
@@ -106,8 +108,11 @@ if __name__ == "__main__":
         raise OSError(TAG + "File doesn't exist: %s" % args.image)
 
      # Decode the image and extract type
-    image, imageType = load_pil_image(args.image)
-    width, height = image.size
+    # image, imageType = load_pil_image(args.image)
+    # width, height = image.size
+    image = cv2.imread(args.image, cv2.IMREAD_COLOR)  # shape: (H, W, 3), BGR
+    width= image.shape[1]
+    height= image.shape[0]
 
     # Update JSON options using values from the command args
     JSON_CONFIG["assets_folder"] = args.assets
@@ -127,13 +132,10 @@ if __name__ == "__main__":
                 ultimateAlprSdk.UltAlprSdkEngine_init(json.dumps(JSON_CONFIG))
                )
 
-    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    print(str(imageType))
 
-    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     checkResult("Process",
                 ultimateAlprSdk.UltAlprSdkEngine_process(
-                    imageType,
+                    0,
                     image.tobytes(), # type(x) == bytes
                     width,
                     height,
@@ -151,10 +153,10 @@ if __name__ == "__main__":
 def lpr_init():
     ultimateAlprSdk.UltAlprSdkEngine_init(json.dumps(JSON_CONFIG))
 
-def do_lpr(image,  width, height):
+def do_lpr(image_byte,  width, height):
     result = ultimateAlprSdk.UltAlprSdkEngine_process(
-                    0,
-                    image.toByte(), # type(x) == bytes
+                    ultimateAlprSdk.ULTALPR_SDK_IMAGE_TYPE_RGB24,
+                    image_byte, # type(x) == bytes
                     width,
                     height,
                     0, # stride
