@@ -198,7 +198,7 @@ async def main():
         # 비동기 HTTP 요청 실행 (서버 응답을 기다리지 않음)
         await send_frame_async(img_encoded.tobytes(), metadata)
 
-        if cv2.waitKey(1000) & 0xFF == 27:  # ESC 종료
+        if cv2.waitKey(500) & 0xFF == 27:  # ESC 종료
             break
 
     cv2.destroyAllWindows()
