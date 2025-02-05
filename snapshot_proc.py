@@ -7,7 +7,7 @@ import json
 import numpy as np
 from ultralytics import YOLO
 from onvif_snapshot import get_onvif_snapshot
-from lpr_proc import lpr_init, lpr_de_init, do_lpr
+# from lpr_proc import lpr_init, lpr_de_init, do_lpr
 
 
 SERVER_URL = "http://localhost:7800"
@@ -66,6 +66,11 @@ async def send_car_async(image_data, rect):
     headers = {"Authorization": f"Bearer {BEARER_TOKEN}"}
     
     async with aiohttp.ClientSession(headers=headers) as session:
+        # width = rect[2] - rect[0]
+        # height = rect[3] - 
+        
+        # do_lpr(image_data, "jpg",)
+
         async with session.post(SERVER_URL + "/bestframe/car", data={'image': image_data}) as response:
             if response.status == 200:
                 json_data = await response.json()
@@ -96,7 +101,7 @@ def is_overlap(boxA, boxB):
 
 async def main():
     # LPR init
-    lpr_init()
+    # lpr_init()
 
     model = YOLO('yolo11m.pt', verbose=False)  # COCO 사전 학습
     model.overrides['conf'] = 0.25  # confidence threshold 설정
@@ -197,5 +202,6 @@ async def main():
             break
 
     cv2.destroyAllWindows()
+    # lpr_de_init()
 
 asyncio.run(main())
