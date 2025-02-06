@@ -131,7 +131,7 @@ async def main():
 
     model = YOLO('yolo11m.pt', verbose=False)  # COCO 사전 학습
     model.overrides['conf'] = 0.25  # confidence threshold 설정
-    model.overrides['img_size']=1024
+    model.overrides['imgsz']=1024
 
     if torch.cuda.is_available():
         model.to('cuda')
