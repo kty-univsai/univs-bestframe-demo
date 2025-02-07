@@ -13,9 +13,9 @@ from onvif_snapshot import get_onvif_snapshot
 SERVER_URL = "http://localhost:7800"
 BEARER_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcmdfaWQiOiIyNSIsIm9yZ19ncm91cF9pZCI6ImRlNTNhNzIyLTkzNDMtNDllMC1hMmVlLTQ0ZWFjNjlhZmU1NiIsIm5hbWUiOiJ1bml2cyIsImVtYWlsIjoia3R5QHVuaXZzLmFpIiwiaWF0IjoxNzM2Mzk1NDc5LCJleHAiOjM0NzI3OTA5NTh9.XzxfCy3V0wc8MpYO6m6LvT98UESKOrMXayITTJdncpA"
 
-ip = "192.168.0.96"     # 카메라 IP
-port = 80               # ONVIF 서비스 포트 (기본값 80)
-user = "ADMIN"          # ONVIF 사용자
+ip = "192.168.0.96"         # 카메라 IP
+port = 80                   # ONVIF 서비스 포트 (기본값 80)
+user = "ADMIN"              # ONVIF 사용자
 password = "Dbslqjtm!"      # ONVIF 비밀번호
 
 
