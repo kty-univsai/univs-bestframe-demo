@@ -98,7 +98,7 @@ def is_overlap(boxA, boxB):
 
 async def main():
 
-    model = YOLO('yolo11l.pt', verbose=False)  # COCO 사전 학습
+    model = YOLO('gun_model.pt', verbose=False)  # COCO 사전 학습
     model.overrides['conf'] = 0.25  # confidence threshold 설정
     model.overrides['imgsz']=1024
 
