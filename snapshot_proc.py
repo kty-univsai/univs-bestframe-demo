@@ -13,41 +13,10 @@ from onvif_snapshot import get_onvif_snapshot
 SERVER_URL = "http://localhost:7800"
 BEARER_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcmdfaWQiOiIyNSIsIm9yZ19ncm91cF9pZCI6ImRlNTNhNzIyLTkzNDMtNDllMC1hMmVlLTQ0ZWFjNjlhZmU1NiIsIm5hbWUiOiJ1bml2cyIsImVtYWlsIjoia3R5QHVuaXZzLmFpIiwiaWF0IjoxNzM2Mzk1NDc5LCJleHAiOjM0NzI3OTA5NTh9.XzxfCy3V0wc8MpYO6m6LvT98UESKOrMXayITTJdncpA"
 
-ip = "192.168.0.232"     # 카메라 IP
+ip = "192.168.0.96"     # 카메라 IP
 port = 80               # ONVIF 서비스 포트 (기본값 80)
-user = "admin"          # ONVIF 사용자
-password = "dbslqjtm!2"      # ONVIF 비밀번호
-
-
-JSON_CONFIG = {
-    "debug_level": "info",
-    "debug_write_input_image_enabled": False,
-    "debug_internal_data_path": ".",
-    
-    "num_threads": -1,
-    "gpgpu_enabled": True,
-    "max_latency": -1,
-
-    "klass_vcr_gamma": 1.5,
-    
-    "detect_roi": [0, 0, 0, 0],
-    "detect_minscore": 0.1,
-
-    "car_noplate_detect_min_score": 0.8,
-    
-    "pyramidal_search_enabled": True,
-    "pyramidal_search_sensitivity": 0.28,
-    "pyramidal_search_minscore": 0.3,
-    "pyramidal_search_min_image_size_inpixels": 800,
-    
-    "recogn_rectify_enabled": True,
-    "recogn_minscore": 0.3,
-    "recogn_score_type": "min",
-
-    "assets_folder": "/home/bearkim/samples/ultimateALPR-SDK/assets",
-    "charset": "korean", 
-    "openvino_enabled": False
-}
+user = "ADMIN"          # ONVIF 사용자
+password = "Dbslqjtm!"      # ONVIF 비밀번호
 
 
 def convert_to_native_types(data):
@@ -154,7 +123,11 @@ async def main():
                 conf = float(box.conf[0])
                 label = model.names[cls_id]  # COCO 클래스명
                 xyxy = box.xyxy[0].cpu().numpy().astype(int)  # 바운딩 박스 좌표
-                
+                print(print(model.names[cls_id]))
+
+
+
+
                 # "person", "car"만 필터링
                 if label in ["person", "car"]:
                     x1, y1, x2, y2 = xyxy

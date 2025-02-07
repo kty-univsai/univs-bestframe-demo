@@ -129,7 +129,7 @@ async def main():
                     conf = float(box.conf[0])
                     label = model.names[cls_id]  # COCO 클래스명
                     xyxy = box.xyxy[0].cpu().numpy().astype(int)  # 바운딩 박스 좌표
-                    
+
                     # "person", "car"만 필터링
                     if label in ["person", "car"]:
                         x1, y1, x2, y2 = xyxy
