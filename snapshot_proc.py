@@ -15,8 +15,8 @@ BEARER_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcmdfaWQiOiIyNSIsIm9yZ19
 
 ip = "192.168.0.96"         # 카메라 IP
 port = 80                   # ONVIF 서비스 포트 (기본값 80)
-user = "ADMIN"              # ONVIF 사용자
-password = "Dbslqjtm!"      # ONVIF 비밀번호
+user = "admin"              # ONVIF 사용자
+password = "dbslqjtm1"      # ONVIF 비밀번호
 
 
 def convert_to_native_types(data):
