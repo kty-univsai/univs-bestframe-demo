@@ -1,11 +1,11 @@
 from ultralytics import YOLO
 
 # 1) 이미 학습된 모델 또는 사전학습 모델 로드
-model = YOLO("./yolo11l_weapon.pt")  # 또는 "yolov8s.pt"
+model = YOLO("/home/univs/samples/univs-bestframe-demo/yolo11l_weapon.pt")  # 또는 "yolov8s.pt"
 
 # 2) 새 데이터셋으로 추가 학습
 model.train(
-    data="./dataset.yaml",  # 새로 만든 data.yaml 파일 경로
+    data="./data.yaml",  # 새로 만든 data.yaml 파일 경로
     epochs=30,
     imgsz=640,
     batch=8,
