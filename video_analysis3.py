@@ -1,5 +1,6 @@
 import torch
 import cv2
+import cvzone
 import aiohttp
 import asyncio
 import json
@@ -8,7 +9,7 @@ import numpy as np
 from ultralytics import YOLO
 
 
-SERVER_URL = "http://localhost:7800"
+SERVER_URL = "http://192.168.79.7:7800"
 BEARER_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcmdfaWQiOiIyNSIsIm9yZ19ncm91cF9pZCI6ImRlNTNhNzIyLTkzNDMtNDllMC1hMmVlLTQ0ZWFjNjlhZmU1NiIsIm5hbWUiOiJ1bml2cyIsImVtYWlsIjoia3R5QHVuaXZzLmFpIiwiaWF0IjoxNzM2Mzk1NDc5LCJleHAiOjM0NzI3OTA5NTh9.XzxfCy3V0wc8MpYO6m6LvT98UESKOrMXayITTJdncpA"
 
 ip = "192.168.0.96"         # 카메라 IP
@@ -44,13 +45,13 @@ async def send_frame_async(image_data, metadata):
                 return None
 
 async def send_human_async(image_data, rect):
-    headers = {"Authorization": f"Bearer {BEARER_TOKEN}"}
-    
+    headers = {"Authorization": f"Bearer {BEARER_TOKEN}"}    
+
     async with aiohttp.ClientSession(headers=headers) as session:
         async with session.post(SERVER_URL+ "/event/generate", data={'image': image_data}) as response:
             if response.status == 200:
                 json_data = await response.json()
-                if json_data.get("code") == "success":
+                if json_data.get("code") == "success":                    
                     return {
                         "json": json_data,
                         "type": "human",
@@ -95,14 +96,12 @@ def is_overlap(boxA, boxB):
 
 
 async def main():
-
-    aa = torch.load("best.pt", weights_only=False)
-    model = YOLO(aa)  # COCO 사전 학습
+    
+    model = YOLO("yolo11n.pt")  # COCO 사전 학습
     model.overrides['conf'] = 0.25  # confidence threshold 설정
     model.overrides['imgsz']=1024
 
-
-    # gun_model = YOLO('gun_model.pt')
+    weapon_model = YOLO("gun_model.pt")  # COCO 사전 학습
 
     if torch.cuda.is_available():
         model.to('cuda')
@@ -111,6 +110,7 @@ async def main():
         print("GPU가 없어서 CPU로 실행됩니다.")    
 
     cap = cv2.VideoCapture(0)
+    currentFrame = 0
 
     while True:
         currentFrame += 1
@@ -126,6 +126,7 @@ async def main():
             continue
         
         results = model(frame)
+        weapon_results = weapon_model(frame)
     
         tasks = []            
         weapons = []
@@ -136,32 +137,29 @@ async def main():
                 conf = float(box.conf[0])
                 label = model.names[cls_id]  # COCO 클래스명
                 xyxy = box.xyxy[0].cpu().numpy().astype(int)  # 바운딩 박스 좌표                
-                
+
                 if label in ["person"]:
                     x1, y1, x2, y2 = xyxy
 
                     cropped_frame = frame[y1:y2, x1:x2]
                     _, img_encoded = cv2.imencode('.jpg', cropped_frame)
 
-                    if label == "person":
+                    if label == "person":                        
                         tasks.append(send_human_async(img_encoded.tobytes(), (x1, y1, x2, y2)))                              
             
-        # for wr in weapon_results:            
-        #     for box in r.boxes:
-        #         cls_id = int(box.cls[0])
-        #         conf = float(box.conf[0])
-        #         label = model.names[cls_id] 
-        #         xyxy = box.xyxy[0].cpu().numpy().astype(int)  # 바운딩 박스 좌표                
+        for wr in weapon_results:            
+            for box in wr.boxes:
+                cls_id = int(box.cls[0])
+                conf = float(box.conf[0])
+                label = model.names[cls_id] 
+                xyxy = box.xyxy[0].cpu().numpy().astype(int)  # 바운딩 박스 좌표                
 
+                x1, y1, x2, y2 = xyxy
 
-        #         # "person", "car"만 필터링
-        #         if label in ["person", "car"]:
-        #             x1, y1, x2, y2 = xyxy
-
-        #             cropped_frame = frame[y1:y2, x1:x2]
-        #             _, img_encoded = cv2.imencode('.jpg', cropped_frame)
-                                        
-        #             tasks.append(send_weapon_async(img_encoded.tobytes(), (x1, y1, x2, y2)))
+                cropped_frame = frame[y1:y2, x1:x2]
+                _, img_encoded = cv2.imencode('.jpg', cropped_frame)
+                                    
+                tasks.append(send_weapon_async(img_encoded.tobytes(), (x1, y1, x2, y2)))
 
             
         results = await asyncio.gather(*tasks)
@@ -178,7 +176,7 @@ async def main():
         human_metadata = []
         weapon_metadata = []
 
-        for human in humans:
+        for human in humans:            
             overlap_weapon = [] 
             
             h1 = {
@@ -192,7 +190,7 @@ async def main():
             for weapon in weapons:
                 if is_overlap(human['rect'], weapon['rect']):
                     overlap_trigger = True
-                    overlap_weapon.append(weapon['json'].weapon("data", {}).get("id")) 
+                    overlap_weapon.append(weapon['json'].get("data", {}).get("id")) 
             h1["overlap"] = overlap_weapon
             h1["rect"] = [human['rect'][0],human['rect'][1], human['rect'][2], human['rect'][3]]
             human_metadata.append(h1)
@@ -219,6 +217,7 @@ async def main():
         # 비동기 HTTP 요청 실행 (서버 응답을 기다리지 않음)
         await send_frame_async(img_encoded.tobytes(), metadata)
 
+        # cv2.imshow('frame', frame)
         if cv2.waitKey(1) & 0xFF == 27:  # ESC 종료
             break
 
