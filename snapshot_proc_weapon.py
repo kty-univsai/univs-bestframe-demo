@@ -103,7 +103,8 @@ async def main():
     model.overrides['imgsz']=1024
 
     weapon_model = YOLO("gun_model.pt")  # COCO 사전 학습
-
+    weapon_model.overrides['conf'] = 0.25  # confidence threshold 설정
+    weapon_model.overrides['imgsz']=1024
 
     if torch.cuda.is_available():
         model.to('cuda')
