@@ -97,10 +97,8 @@ def is_overlap(boxA, boxB):
 
 
 async def main():
-
-    aa = torch.load("best.pt", weights_only=False)    
-    model = YOLO(aa)  # COCO 사전 학습
-    print("sex11")
+    
+    model = YOLO("best.pt")  # COCO 사전 학습    
     model.overrides['conf'] = 0.25  # confidence threshold 설정
     model.overrides['imgsz']=1024
     
