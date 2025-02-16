@@ -16,6 +16,8 @@ COPY environment.yml .
 #    --name 옵션을 써도 되지만, environment.yml에 name이 있을 경우 자동으로 해당 이름으로 설치됨
 RUN conda env create -f environment.yml --yes
 
+RUN pip install python-dotenv
+
 # 5) SHELL을 변경해서 docker 컨테이너 안에서 conda activate를 사용 가능하게 하거나
 #    혹은 아래처럼 'conda run'을 통해서 환경을 실행하도록 할 수 있음.
 SHELL ["conda", "run", "-n", "myenv", "/bin/bash", "-c"]
