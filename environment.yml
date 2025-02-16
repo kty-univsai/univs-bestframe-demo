@@ -192,7 +192,6 @@ dependencies:
       - tqdm==4.67.1
       - triton==3.2.0
       - tzdata==2025.1
-      - ultimatealprsdk==3.0.0
       - ultralytics==8.3.70
       - ultralytics-thop==2.0.14
       - yarl==1.18.3
