@@ -106,10 +106,7 @@ async def main():
                 cls_id = int(box.cls[0])
                 conf = float(box.conf[0])
                 label = model.names[cls_id]  # COCO 클래스명
-                xyxy = box.xyxy[0].cpu().numpy().astype(int)  # 바운딩 박스 좌표
-                print(print(model.names[cls_id]))
-
-
+                xyxy = box.xyxy[0].cpu().numpy().astype(int)  # 바운딩 박스 좌표                
 
 
                 # "person", "car"만 필터링
