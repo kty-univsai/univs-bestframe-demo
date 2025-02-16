@@ -3,7 +3,13 @@ FROM continuumio/miniconda3:latest
 
 USER root
 RUN apt-get update && \
-    apt-get install -y libpq-dev gcc
+    apt-get install -y \ 
+    libgl1 \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
+    libpq-dev gcc
 
 # 2) 작업 디렉터리 설정
 WORKDIR /app
