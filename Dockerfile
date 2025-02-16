@@ -1,6 +1,10 @@
 # 1) Miniconda 베이스 이미지 사용
 FROM continuumio/miniconda3:latest
 
+USER root
+RUN apt-get update && \
+    apt-get install -y libpq-dev gcc
+
 # 2) 작업 디렉터리 설정
 WORKDIR /app
 

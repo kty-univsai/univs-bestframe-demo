@@ -13,8 +13,8 @@ from onvif_snapshot import get_onvif_snapshot
 # .env 파일 로드
 load_dotenv()
 
-SERVER_URL = "http://localhost:7800"
-BEARER_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcmdfaWQiOiIyNSIsIm9yZ19ncm91cF9pZCI6ImRlNTNhNzIyLTkzNDMtNDllMC1hMmVlLTQ0ZWFjNjlhZmU1NiIsIm5hbWUiOiJ1bml2cyIsImVtYWlsIjoia3R5QHVuaXZzLmFpIiwiaWF0IjoxNzM2Mzk1NDc5LCJleHAiOjM0NzI3OTA5NTh9.XzxfCy3V0wc8MpYO6m6LvT98UESKOrMXayITTJdncpA"
+SERVER_URL = os.getenv("API_SERVER_URL")
+BEARER_TOKEN = os.getenv("API_TOKEN")
 
 ip = os.getenv("CCTV_IP")          # 카메라 IP
 port = 80                          # ONVIF 서비스 포트 (기본값 80)
